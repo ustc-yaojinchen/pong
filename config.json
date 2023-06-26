@@ -1,0 +1,12 @@
+{
+    "seed": 0,
+    "env": "PongNoFrameskip-v4",
+    "load_model_dir" : "",
+    "log_dir": "log",
+    "epochs": 10,
+    "train_episode": 100,
+    "test_episode": 10,
+    "num_step": 100,
+    "lr": 1e-4,
+    "gamma": 0.99
+}
