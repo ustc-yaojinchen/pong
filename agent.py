@@ -1,9 +1,8 @@
 import os
-import gym
 import torch
 
 class Agent():
-    def __init__(self, env, config, model, optimizer):
+    def __init__(self, config, env, model, optimizer):
         self.config = config
         self.env = env
         self.model = model
@@ -34,7 +33,7 @@ class Agent():
         self.rewards = []
         self.terminateds = []
 
-    def reset(self):#重开一把，清除所有数据
+    def reset(self):#重开一把
         self.observation = None
         self.action_probability = None
         self.action = None
@@ -45,7 +44,6 @@ class Agent():
         self.truncated = None 
         self.info = None
         
-        self.clear_buffer()
         self.observation, self.info = self.env.reset()
 
     def test_action(self):#测试行动一步，并记录中间数据到buffer里
@@ -91,7 +89,8 @@ class Agent():
         for t in reversed(range(len(self.observations))):
             R = self.rewards[t] + self.config["gamma"] * R
             Advantage = R - self.values[t]
-            policy_loss += Advantage.data * self.action_probabilities[t].log()[0, self.actions[t]]
+            entropy =  - (self.action_probabilities[t] * self.action_probabilities[t].log()).sum()
+            policy_loss -= Advantage.data * self.action_probabilities[t].log()[0, self.actions[t]] + self.config['beta'] * entropy
             value_loss += (R - self.values[t]) ** 2
         loss = policy_loss + value_loss
 
@@ -99,7 +98,7 @@ class Agent():
         loss.backward()
         self.optimizer.step()
 
-    def save_model(self, best_reward=[float('-inf')]):#读取buffer里面的数据作为评估，并保存模型参数
+    def save_model(self, best_reward=[float('-inf')]):#读取buffer里面的数据作为评估，并保存模型参数。bset_reward作为一个长期使用的存储器
         path = os.path.join(self.config['log_dir'], 'new.pt')
         torch.save(self.model.state_dict(), path)
 
@@ -110,4 +109,14 @@ class Agent():
             torch.save(self.model.state_dict(), path)
 
     def log(self):#把buffer里面需要的数据写进log里
-        pass
+        with open(os.path.join(self.config['log_dir'], 'log'), 'a') as f:
+            for t in range(len(self.observations)):
+                action_probability = self.action_probabilities[t].tolist()[0]
+                action_probability = [round(num, 2) for num in action_probability]
+                action = int(self.actions[t])
+                value = float(self.values[t])
+                reward = float(self.rewards[t])
+                
+                f.write('{:}\t{:}\t{:.4f}\t{:.2f}\n'.format(action_probability, action, value, reward))
+                if self.terminateds[t]:
+                    f.write('\n')

@@ -10,7 +10,7 @@ def train(agent):
                 agent.clear_buffer()
                 break
 
-            if len(agent.observations) == agent.config['num_step']:
+            if len(agent.observations) == agent.config['max_step']:
                 agent.optimize()
                 agent.log()
                 agent.clear_buffer()
