@@ -19,8 +19,6 @@ def test(agent):
     for episode in range(agent.config['test_episode']):
         agent.reset()
         while True:
-            if episode == 0:
-                agent.env.render()
             agent.test_action()
             if agent.terminated:
                 break

@@ -1,8 +1,9 @@
 import os
+import gym
 import torch
 
 class Agent():
-    def __init__(self, config, env, model, optimizer):
+    def __init__(self, env, config, model, optimizer):
         self.config = config
         self.env = env
         self.model = model
@@ -47,7 +48,7 @@ class Agent():
         self.clear_buffer()
         self.observation, self.info = self.env.reset()
 
-    def test_action(self):
+    def test_action(self):#测试行动一步，并记录中间数据到buffer里
         self.observations.append(self.observation)
 
         self.action_probability, self.value = self.model(self.observation)
@@ -62,7 +63,7 @@ class Agent():
         self.rewards.append(self.reward)
         self.terminateds.append(self.terminated)
     
-    def train_action(self):
+    def train_action(self):#训练行动一步，并记录中间数据到buffer里
         self.observations.append(self.observation)
 
         self.action_probability, self.value = self.model(self.observation)
@@ -77,7 +78,7 @@ class Agent():
         self.rewards.append(self.reward)
         self.terminateds.append(self.terminated)
 
-    def optimize(self):
+    def optimize(self):#使用buffer里面的数据进行优化
         policy_loss = 0
         value_loss = 0
 
@@ -98,15 +99,15 @@ class Agent():
         loss.backward()
         self.optimizer.step()
 
-    def save_model(self, best_reward=[float('-inf')]):#读取buffer里面的数据，除以保存模型参数
+    def save_model(self, best_reward=[float('-inf')]):#读取buffer里面的数据作为评估，并保存模型参数
         path = os.path.join(self.config['log_dir'], 'new.pt')
-        torch.save(self.model.player1.state_dict(), path)
+        torch.save(self.model.state_dict(), path)
 
         reward = sum(self.rewards) / sum(self.terminateds)
         if reward > best_reward[0]:
             best_reward[0] = reward
             path = os.path.join(self.config['log_dir'], 'best_{:.4f}.pt'.format(reward))
-            torch.save(self.model.player1.state_dict(), path)
+            torch.save(self.model.state_dict(), path)
 
     def log(self):#把buffer里面需要的数据写进log里
         pass

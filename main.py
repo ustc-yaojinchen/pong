@@ -2,7 +2,9 @@ import gym
 import random
 import torch
 import json
+import os
 import numpy as np
+from datetime import datetime
 
 from model import Model
 from agent import Agent
@@ -21,15 +23,17 @@ def main():
     env = gym.make(config['env'], render_mode='human')
     env.seed(config['seed'])
 
+    if config['log_dir'] == '':
+        config['log_dir'] = os.path.join('log', config['env'],  datetime.now().strftime('%b%d_%H_%M'))
+
     model = Model()
     if config['load_model_dir'] != '':
         model.load_state_dict(torch.load(config['load_model_dir'], map_location=lambda storage, loc: storage))
     
-    optimizer = torch.optim.RMSprop(model.parameters(), lr=config['lr'])
+    optimizer = torch.optim.RMSprop(model.parameters(), lr=config['lr'])#考虑到Adam之类的优化器需要以前的数据，所以不在train()里面定义
 
-    train_agent = Agent(config, env, model, optimizer)
-    test_agent = Agent(config, env, model, None)
-    
+    train_agent = Agent(config, env, model, optimizer)#考虑到以后offline算法，为了保存所有的数据，所以agent不在train()里面进行定义
+    test_agent = Agent(config, model, None)
     for epoch in range(config['epochs']):
         train(train_agent)
         test(test_agent)
