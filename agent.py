@@ -18,14 +18,14 @@ class Agent():
         self.truncated = None 
         self.info = None
         
-        self.observations = []#buffer
+        self.observations = []#buffer，只存未来智能体还可能需要学习的数据
         self.action_probabilities = []
         self.actions = []
         self.values = []
         self.rewards = []
         self.terminateds = []
 
-    def clear_buffer(self):
+    def clear_buffer(self):#清除buffer里面的数据
         self.observations = []
         self.action_probabilities = []
         self.actions = []
@@ -76,7 +76,7 @@ class Agent():
         self.rewards.append(self.reward)
         self.terminateds.append(self.terminated)
 
-    def optimize(self):#使用buffer里面的数据进行优化
+    def optimize(self):#使用buffer里面的数据优化智能体
         policy_loss = 0
         value_loss = 0
 

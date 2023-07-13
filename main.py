@@ -11,24 +11,24 @@ from agent import Agent
 from train import train, test
 
 def main():
-    with open('config.json', 'r') as f:
+    with open('config.json', 'r') as f:#读取config
         config = json.loads(f.read())
     
-    np.random.seed(config['seed'])
+    np.random.seed(config['seed'])#固定随机数种子
     random.seed(config['seed'])
     torch.manual_seed(config['seed'])
     torch.cuda.manual_seed_all(config['seed'])
     torch.backends.cudnn.deterministic = True
 
-    env = gym.make(config['env'])
+    env = gym.make(config['env'])#生成环境
     env.seed(config['seed'])
 
-    if config['log_dir'] == '':
+    if config['log_dir'] == '':#保存log的目录
         config['log_dir'] = os.path.join('log', config['env'],  datetime.now().strftime('%b%d_%H_%M'))
     if not os.path.exists(config['log_dir']):
         os.makedirs(config['log_dir'])
 
-    model = Model()
+    model = Model()#生成（读取）model参数
     if config['load_model_dir'] != '':
         model.load_state_dict(torch.load(config['load_model_dir'], map_location=lambda storage, loc: storage))
     
